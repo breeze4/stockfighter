@@ -36,15 +36,18 @@
     body))
 
 (defn init-level []
-  (let [response (http/post (str gm-url level-one) {:headers auth-header})
+  (let [response (http/post (str gm-url level-one)
+                            {:headers            auth-header
+                             :socket-timeout     10000
+                             :connection-timeout 10000})
         body (parse-body response)
         instance (swap! state assoc :instanceId (body :instanceId))
         account (swap! state assoc :account (body :account))
         ticker (swap! state assoc :ticker (first (body :tickers)))
-        venue (swap! state assoc :ticker (first (body :venues)))]
+        venue (swap! state assoc :venue (first (body :venues)))]
     (if (body :ok)
-      (prn "success! ready" instance account ticker venue)
-      ;(order "buy" 100 ticker venue account "market")
+      (do (prn "success! ready" instance account ticker venue)
+          (order "buy" 100 ticker venue account "market"))
       (prn "error" response)
       )
     ))
